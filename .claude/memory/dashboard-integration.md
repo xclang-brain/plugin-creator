@@ -33,7 +33,8 @@ Web管理画面（憲章 第20条〜第22条）と Copilot CLI をつなぐと�
 
 ### 読み込みの条件と確認（1.0.102 の実測）
 
-- `--experimental` なしでは、エクステンションのツールは載らない。`copilot --experimental` で起動する。一度付けると `settings.json` に `"experimental": true` が残り、次からは付けなくても有効になる（`-p --experimental` でも同じ。公式の説明に「残る」とは書かれていない）。
+- **1.0.105 では、試験的な機能を有効にしなくても、エクステンションが読み込まれた**（`settings.json` が `"experimental": false` でも、起動のときに elevated permissions の確認が出て、ツールがモデルに届いた）。読み込むかどうかは `extensions.mode`（`load_and_augment`（既定）・`load_only`・`disabled`）と `extensions.disabledExtensions` で決まる（`cli-main.js` の `gj()`）。読み込ませない試験は、`settings.json` に `"extensions": {"mode": "disabled"}` を書く（ログに「Installed 0 native extension(s)」と出る）。2026年11月、embedded-debug-loop 0.2.0 の試験で確かめた。
+- 以下は 1.0.102 のころの結果：`--experimental` なしでは、エクステンションのツールは載らない。`copilot --experimental` で起動する。一度付けると `settings.json` に `"experimental": true` が残り、次からは付けなくても有効になる（`-p --experimental` でも同じ。公式の説明に「残る」とは書かれていない）。
 - 起動したあとは、チャットで `/settings experimental on` と打つ。自動で再起動する（今の会話は終わる）。まだ信頼していないフォルダでは、フォルダの信頼の確認が出て、続けてエクステンションの確認が出る。`/experimental on` も動くが、`copilot help config` が非推奨と書く。無効に戻すのは `/settings experimental off` か `copilot --no-experimental`（どちらも設定に残る）。
 - 確認：エクステンションが、確認を省くツール（`skipPermission`）、フック、許可の求めに答える仕組みのどれかを登録すると、Copilot CLI は読み込みのときに、それを許すかの確認（`kind` が `extension-permission-access`）をチャットに出す（`cli-main.js` と実測）。
   - 題は `Extension "plugin:<プラグイン>:<フォルダ>" wants elevated permissions`。本文は `This extension wants to: skip tool permission prompts, register hooks.` のように、登録したものだけが並び（許可の求めに答える仕組みを登録すると `handle permission requests` が加わる）、`Denying will prevent this extension from loading.` が続く。選択肢は `1. Yes`、`2. Yes, and always allow "<名前>" in this directory (<フォルダ>)`、`3. No (Esc)`。断ると、ツールもフックも登録されず、読み込まれない。
@@ -61,6 +62,14 @@ Web管理画面（憲章 第20条〜第22条）と Copilot CLI をつなぐと�
   - `onPermissionRequest` は、作業エージェント（サブエージェント）のシェルの許可の求め（コマンドとパス）を受け取れた。`{ kind: 'no-result' }`（答えない）を返すと、チャットに確認が出て、利用者が答えると続行した。
 - Node.js：エクステンションは Copilot CLI 自身の実行ファイルで起動される（`cli-main.js` の `launcherProgram: process.execPath`）。そのため、Node.js を別に入れなくてよい見込み（要確認）。
 - 許可の求めのイベント（`permission.requested`）が、`onPermissionRequest` を登録しないエクステンションにも届くかは分からない。手がかりは両方ある（届く：SDK の型定義の説明。届かない：Copilot CLI が「許可の求めを見る」を、読み込みのときの確認で許す権限として扱っていること）。
+
+### 1.0.105 で確かめたこと（2026年11月、embedded-debug-loop 0.2.0 の試験）
+
+- `session.send({ prompt })` で、チャットに利用者のメッセージとして送り、メインのエージェントの手番を始められた（Web管理画面の「開始」に使った）。知らせは、そのときチャットで選ばれているエージェントに届く。`session.rpc.agent.getCurrent()` で今のエージェントを読み、`session.rpc.agent.select({ name })` で切り替えてから送れる。
+- `session.abort()` で、メインのエージェントの手番を止められた。動いていたサブエージェントには `subagent.completed`（`cancelled: true`）が届いた。`session.log(text, { level: 'warning' })` で、チャットに知らせを出せた（手番は始まらない）。
+- ask_user（引数は `message` と `requestedSchema`）は、`user_input.requested` ではなく `elicitation.requested` / `elicitation.completed` のイベントで届く（`data.message`、`requestId`）。
+- `tools.updateSubagentSettings` の `agents.<名前>` に `model` と `effortLevel` を入れると、サブエージェントのモデルと考える深さを当てられる（定義のファイルは書き換えない）。
+- `bash` が 0 以外の終了コードで終わっても、`tool.execution_complete` の `success` は true のまま。終了コードは `data.shellExecution.exitCode` にある。フックで断ったツールは `success: false`、`error.code: 'denied'`。
 
 ### 確かめていないこと
 
