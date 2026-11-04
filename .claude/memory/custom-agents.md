@@ -80,6 +80,7 @@
 - Copilot CLI のシステムプロンプトは、モデルの ID ごとに族に分かれる。今の GPT の族（GPT-6 系など）には「Bias to action」「Make reasonable assumptions for missing details」、Claude 5 の族には「limit your response to 100 words or less」「Prioritize brevity」が入る。聞き取りの手順とぶつかるので、スキルの側で優先を書く（[ヒアリングの設計](../../docs/design/hearing.md) 2.7、10.2）。
 - 退役したモデル：GPT-4.1（2026-06-01）、GPT-5 mini・GPT-5.5・GPT-5.4 mini など（2026-10-19）。既定のモデルは Claude Sonnet 5.5。古いモデルの事実に頼らない（憲章 第5条3項）。
 - 費用（100万トークンあたり、入力・出力）：GPT-6 Luna と Claude Haiku 5.5 は 0.10・0.50 ドル、GPT-6.1 Sol と Claude Sonnet 5.5 は 2.00・10.00 ドルで、20倍違う。GPT-6.1 Sol は Pro プランでは使えない。年額の旧プランは、プロンプトの数とセッションのモデルで数えるので、作業エージェントを安いモデルにしても費用は変わらない。
+- 安いモデルでの判定の正しさ（2026年11月。生成プラグイン coverity-warning-triage を Claude Code で動く形に置き換え、Agent SDK で動かした結果。サブエージェントの既定の GPT-6 Luna は、同じ単価の Claude Haiku 5.5 に置き換えた。Copilot CLI では確かめていない）：/coverity-run で警告12件を調べた（同じ関数の2件は1つにまとめて調べるので、調べるまとまりは11）。メインのエージェントもサブエージェントも Haiku 5.5 にすると、正しく判定したまとまりは2回とも11のうち10で、メインを Sonnet 5.5・サブを Haiku 5.5 にしたとき（10と11）や、両方を Sonnet 5.5 にしたとき（2回とも10）とほぼ同じだった。費用は、両方 Haiku が 0.19ドル、Sonnet と Haiku が 0.77〜0.78ドル、両方 Sonnet が 2.09〜2.14ドルだった。メインが Sonnet のとき、費用の約8割はメインのエージェントで、手順を進める呼び出しの回数がそのまま費用になった。
 
 ## サブエージェントとスキル
 
