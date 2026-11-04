@@ -54,7 +54,7 @@ Claude Code の Agent SDK（TypeScript 版 0.3.302、Claude Code 2.1.302）で�
 - 記録（トランスクリプト）は、`HOME` の下の `.claude/projects/` に残る。続きの会話（`resume`）には、同じ `HOME` を使う。
 - 続きの会話で返る `total_cost_usd` は、それまでの分を含む合計である。
 - 費用の上限 `maxBudgetUsd` は、1回の問い合わせ（query）ごとの上限で、試験全体の上限にはならない（0.3.310 の型定義の説明「for the query」）。試験全体の上限は、試験の側で守る。2026年11月の coverity-warning-triage の試験では、問い合わせごとの費用を足し、残りの額を次の問い合わせの `maxBudgetUsd` に渡し、上限に達したら新しい問い合わせを始めないようにした。
-- 時間切れなどで止めた問い合わせは、費用の結果（`total_cost_usd`）が届かない。2026年11月の coverity-warning-triage の Web管理画面の流れの試験では、統括の問い合わせが時間切れで止まり、0.21ドルと数えたが、記録から数え直すと 2.11ドルだった。
+- 時間切れで止めた問い合わせは、費用の結果（`total_cost_usd`）が届かない（確かめたのは時間切れの1件）。2026年11月の coverity-warning-triage の Web管理画面の流れの試験では、統括の問い合わせが時間切れで止まり、0.21ドルと数えたが、記録から数え直すと 2.11ドルだった。
 - 費用は、記録（`HOME` の下の `.claude/projects/**/*.jsonl`）の assistant のメッセージの `usage` から数え直せる。同じメッセージ（`message.id`）が何行にも出るので、id ごとに最後の `usage` を使う。入力・出力・キャッシュの読み・キャッシュの書き込み（5分と1時間）に、モデルごとの単価を掛ける。最後まで動いた回では、SDK の費用と小数4桁まで合った。同じトークンに Copilot の価格表の単価を掛けると、Copilot の AI クレジットの目安になる（Claude Haiku 5.5 は、1回で送った量が10万トークンを超えると、長い文脈の単価になる）。
 - サブエージェントの種類と、それが使ったモデルは、実行の記録（ツール呼び出しの ID とメッセージのモデル名）から分かる。0.3.310 では、サブエージェントの始まりのフック（`SubagentStart`）に `agent_id` と `agent_type`、`Agent` の呼び出しの `PreToolUse` に `description`・`subagent_type`・`run_in_background`、サブエージェントのメッセージに `agent_id` と `message.model` が付いた。
 - 試されるエージェントも、モデルの利用枠を使う。EVAL を続けて回したところ、利用枠の上限に達したというエラー（「You've hit your session limit」）で止まり、示された時刻（約3時間後）まで再開できなかった。

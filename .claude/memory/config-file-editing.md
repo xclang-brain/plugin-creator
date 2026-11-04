@@ -5,9 +5,9 @@
 ## 起きたこと
 
 - ct.py の画面の保存と `ct.py set-verify` は、`yaml.safe_load` で読み、`yaml.safe_dump` で全体を書き直していた。行の頭から書いた注釈の行だけを集めて先頭に付けていたので、それらはファイルの先頭に移り、字下げした注釈の行と行の終わりの注釈は消えた。
-- 生成プラグインのエージェントが、手順書の例どおりに行の終わりへ注釈を付けて書いた設定も、次の保存で消えた。
+- /coverity-setup の手順書（SKILL.md）の例は、統合と検証の設定の行の終わりに注釈（「# 統合を使う」など）を付けて書く。エージェントがそのとおりに書くと、その注釈も次の保存で消える作りだった（実際のモデルで /coverity-setup を動かして確かめてはいない）。
 
-## 作り方（`skills/coverity-triage-scripts/scripts/ctlib/yamledit.py`）
+## 作り方（plugin-market-place の `plugins/coverity-warning-triage/skills/coverity-triage-scripts/scripts/ctlib/yamledit.py`。コミット 07ea7f9、f10d56c）
 
 - pyyaml の `yaml.compose` が返すノードの位置（`start_mark`・`end_mark`）で、ファイルの中の値の場所が分かる。変えた値の範囲だけを書き換えると、ほかの行と注釈はそのまま残る。新しいライブラリは要らない。
 - 注釈の持ち主を決めておく。行の終わりの注釈は、その行の設定の項目かリストの値のもの。続いた注釈の行は、次の値の行のもの。消してよいのは、消した項目や値の注釈（行の終わりの注釈と、空の行をはさまずにすぐ上にある注釈の行）だけ。

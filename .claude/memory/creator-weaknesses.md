@@ -22,8 +22,8 @@
 - 2026年11月、生成プラグイン coverity-warning-triage の試験（Web管理画面の写しを本物の作業の定義で描く試験。Playwright）で見つけた。写しでは直した（plugin-market-place のコミット ec956a2）が、クリエイターのひな形（`template/com.github.copilot/extensions/_plugin_/`。main の 11f6b6b）には残っている。
   1. 数の設定に範囲（最小・最大・刻み）を書く項目がなく（`core/task.schema.json`）、範囲の外の数でも作業が始まる。写しでは `min`・`max`・`step` を足し、`core/lifecycle.mjs` で確かめる。
   2. 進み具合の最大の値が0（数える物がまだない、または0件）だと、表示の記録を断る（`core/records.mjs` の `!(value.max > 0)`）。
-  3. 返事のないエージェントにも「最後の返事の全文を開く」が出る（`ui/static/app.js`）。写しでは、状態の全体に `hasReply`・`replied` を足した。
-  4. 開始前の設定の欄を空にすると、初めの値に戻る（`core/lifecycle.mjs` と `ui/static/app.js` の `?? def.default`）。
+  3. 返事のないエージェントにも「最後の返事の全文を開く」が出る（`ui/static/app.js`）。写しでは、状態の全体（`core/run.mjs`）に、エージェントの枠ごとの `hasReply` と、試行ごとの `replied` を足した。
+  4. 開始前の設定の欄を空にすると、初めの値に戻る（`core/lifecycle.mjs` の `def.default ?? ''` と、`ui/static/app.js` の `?? def.default`）。
   5. 表がほかの表示と横に並び、狭い枠に押し込まれる（`ui/static/style.css`。写しでは、表を1行の幅にした）。
   6. 文章の中の URL が押せるリンクにならない（`ui/static/render.js`。写しでは `linkedText` を足した）。
   7. 行のない表や項目のない一覧が、値が届いているのに「まだありません」と出る（`render.js` の表と一覧。写しでは「ありません」と出す）。
